@@ -10,7 +10,7 @@
 """
 import pandas as pd
 import numpy as np
-from data import all_files, data_archivos,precios, i_fechas, data_close, data_open, precios_open, precios_diarios, daterange,data
+from data import all_files, data_archivos,precios, i_fechas, data_close, data_open, precios_open, daterange,data
 
 
 ######## df pasiva
@@ -52,7 +52,7 @@ c = 0.00125
 df_activa.capital[0]=k
 df_activa.timestamp[0] = '2018-01-30'
 df_activa.timestamp[1:] = i_fechas
-df_operaciones = pd.DataFrame(columns=['timestamp', 'titulos_totales', 'titulos_compra',
+df_operaciones = pd.DataFrame(index=np.arange(len(data_close)), columns=['timestamp', 'titulos_totales', 'titulos_compra',
                               'precio', 'comision','comision_acum'])
 #identificar el activo con mayor participación:
 
@@ -76,11 +76,16 @@ act_datos['Comision'] = act_datos['Postura'] * c
 act_cash = k - act_datos['Postura'].sum() - act_datos['Comision'].sum()
 df_activa.capital[1] = act_datos['Postura'].sum() + act_cash
 
-for i in range(len(daterange)):
-    if precios_open[mayor][i]>precios[mayor][i]:
-        df_operaciones.timestam[i] = daterange[i+1]
-        df_operaciones.titulos_compra[i] = act_cash/precios_diarios[i+1]
-        df_operaciones.precio[i]=precios_diarios[i+1]
-        df_operaciones.comisiones[i] = precios_diarios[i+1] + df_operaciones.titulos_compra[i]*c
+for i in range(len(data_close)-1):
+    if data_open[mayor][i]>data_close[mayor][i]:
+        df_operaciones.timestamp[i] = data_close.index[i]
+        df_operaciones.titulos_compra[i] = np.round((act_cash*0.1)/data_close[mayor][i+1])
+        df_operaciones.precio[i]=data_close[mayor][i+1]
+        df_operaciones.comision[i] = data_close[mayor][i+1] + df_operaciones.titulos_compra[i]*c
+        act_cash = act_cash- df_operaciones.titulos_compra[i]*df_operaciones.precio[i]-df_operaciones.comision[i]
+    else:
+        pass
+
+df_operaciones.dropna()
 
 

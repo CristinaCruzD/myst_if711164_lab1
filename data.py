@@ -10,11 +10,9 @@
 """
 
 import pandas as pd
-import glob
 import yfinance as yf
 from os import listdir, path
 from os.path import isfile, join
-import time
 import numpy as np
 from datetime import timedelta, datetime
 from functions import get_data
@@ -48,7 +46,7 @@ global_tickers = [i.replace('LIVEPOLC.1.MX', 'LIVEPOLC-1.MX') for i in global_ti
 [global_tickers.remove(i) for i in ['MXN.MX', 'USD.MX', 'KOFL.MX','KOFUBL.MX' ,'BSMXB.MX']]
 
 
-data = yf.download(global_tickers, start="2017-12-30", end="2020-09-01", actions=False,
+data = yf.download(global_tickers, start="2018-01-30", end="2020-08-22", actions=False,
                    group_by="close", interval='1d', auto_adj=False, prepost=False, threads=False)
 
 # convertir columna de fechas
@@ -59,10 +57,10 @@ data_open = pd.DataFrame({i: data[i]['Open'] for i in global_tickers})
 ic_fechas = sorted(list(set(data_close.index.astype(str).tolist()) & set(i_fechas)))
 
 # fechas para inv. activa
-daterange = pd.date_range(start=ic_fechas[0],end=ic_fechas[-1]).tolist()
+daterange = [d.strftime('%Y-%m-%d') for d in pd.date_range(start=ic_fechas[0],end=ic_fechas[-1])]
 
 # localizar todos los precios
 precios = data_close.iloc[[int(np.where(data_close.index == i)[0]) for i in i_fechas]]
 precios_open = data_open.iloc[[int(np.where(data_close.index == i)[0]) for i in i_fechas]]
-precios_diarios = data_close.iloc[[int(np.where(data_close.index == i)[0]) for i in daterange]]
+#precios_diarios = data_close[[data_close.index == daterange]]
 
